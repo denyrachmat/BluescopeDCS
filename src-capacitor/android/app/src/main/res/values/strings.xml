@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Bluescope DCS</string>
+    <string name="title_activity_main">Bluescope DCS</string>
+    <string name="package_name">org.bluescope.dcs</string>
+    <string name="custom_url_scheme">org.bluescope.dcs</string>
+</resources>
