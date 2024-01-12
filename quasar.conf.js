@@ -28,7 +28,7 @@ module.exports = configure(function (ctx) {
 
     // https://github.com/quasarframework/quasar/tree/dev/extras
     extras: [
-      // 'ionicons-v4',
+      'ionicons-v4',
       // 'mdi-v5',
       // 'fontawesome-v5',
       // 'eva-icons',
@@ -43,7 +43,18 @@ module.exports = configure(function (ctx) {
     // Full list of options: https://quasar.dev/quasar-cli/quasar-conf-js#Property%3A-build
     build: {
       vueRouterMode: "hash", // available values: 'hash', 'history'
-
+      env: {
+        API: ctx.dev
+          ? "http://localhost/bluescope_api/public/api/"
+          : "http://192.168.10.109/bluescope_api/public/api/",
+        API_STORAGE: ctx.dev
+          ? "http://localhost/bluescope_api/public/storage/"
+          : "http://192.168.10.109/bluescope_api/public/storage/",
+        MS_CLIENTID: "8f0ca9f1-5865-44cb-b4a9-4ff10467fb54",
+        MS_AUTHORITY:
+          "https://login.microsoftonline.com/78872ca8-56cd-44d6-af6f-4b6263a8cf3c",
+        GRAPH_API: "https://graph.microsoft.com/v1.0/",
+      },
       // transpile: false,
       // publicPath: '/',
 

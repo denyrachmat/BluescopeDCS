@@ -2,9 +2,9 @@
   <q-layout view="lHh Lpr lFf">
     <q-header elevated>
       <q-toolbar>
-        <q-toolbar-title> Bluesope DCS </q-toolbar-title>
+        <q-toolbar-title> Bluescope DCS </q-toolbar-title>
 
-        <div>v1.0.7</div>
+        <div>v1.0.9</div>
       </q-toolbar>
     </q-header>
 

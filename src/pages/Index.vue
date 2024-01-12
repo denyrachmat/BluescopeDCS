@@ -19,9 +19,16 @@
           <q-btn color="primary" label="Submit" @click="onSubmit()" />
           <q-btn color="orange" label="Clear" @click="onReset()" />
         </q-btn-group>
+      </div>
+    </div>
+    <div>Or</div>
+    <div class="row q-pa-md">
+      <div class="col">
         <q-btn-group spread>
           <q-btn
-            color="cyan"
+            outline
+            icon="ion-logo-google"
+            color="red"
             :label="'Google Sign In'"
             @click="loginG()"
             :disable="isGoogleSignIn"
@@ -29,6 +36,21 @@
         </q-btn-group>
       </div>
     </div>
+    <div class="row q-px-md">
+      <div class="col">
+        <q-btn-group spread>
+          <q-btn
+            outline
+            icon="ion-logo-windows"
+            color="blue"
+            :label="'Microsoft Sign In'"
+            @click="loginMs()"
+            :disable="isGoogleSignIn"
+          />
+        </q-btn-group>
+      </div>
+    </div>
+
     <!-- <div class="row q-pa-md">
       <div class="col">
         <q-btn-group spread>
@@ -58,6 +80,7 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
 } from "firebase/auth";
+import { PublicClientApplication } from "@azure/msal-browser";
 
 export default defineComponent({
   name: "PageIndex",
@@ -75,6 +98,16 @@ export default defineComponent({
       console.log(this.userData);
       this.$router.push("/home/dashboard");
     }
+
+    this.$msalInstance = new PublicClientApplication({
+      auth: {
+        clientId: process.env.MS_CLIENTID,
+        authority: process.env.MS_AUTHORITY,
+      },
+      cache: {
+        cacheLocation: "localStorage",
+      },
+    });
   },
   methods: {
     loginG() {
@@ -141,6 +174,39 @@ export default defineComponent({
         })
         .onDismiss(() => {
           // console.log('I am triggered on both OK and Cancel')
+        });
+    },
+    async loginMs() {
+      await this.$msalInstance
+        .loginPopup({
+          scopes: [
+            "user.read",
+            "mail.send",
+            "Files.ReadWrite.All",
+            "Sites.Read.All",
+          ],
+        })
+        .then(async (val) => {
+          const myAccounts = this.$msalInstance.getAllAccounts();
+          const logs = myAccounts[0];
+          const tokenRequest = {
+            scopes: [
+              "user.read",
+              "mail.send",
+              "Files.ReadWrite.All",
+              "Sites.Read.All",
+            ],
+            account: logs.username,
+          };
+
+          const dataToken = await this.$msalInstance.acquireTokenSilent(
+            tokenRequest
+          );
+
+          if (dataToken) {
+            this.$store.commit("AuthStore/AuthStoreMutation", dataToken);
+            this.$router.push("/home/dashboard");
+          }
         });
     },
   },

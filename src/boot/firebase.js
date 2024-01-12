@@ -7,13 +7,27 @@
 // })
 import { initializeApp } from 'firebase/app';
 
+// const firebaseConfig = {
+//   apiKey: "AIzaSyBTK-MYxSDDxpabGO5dkr8gsNNp6TBb498",
+//   authDomain: "bluescope-dcs.firebaseapp.com",
+//   projectId: "bluescope-dcs",
+//   storageBucket: "bluescope-dcs.appspot.com",
+//   messagingSenderId: "941660173387",
+//   appId: "1:941660173387:web:b05a7fc690d05f889909ce",
+//   scope: [
+//     'https://www.googleapis.com/auth/script.projects',
+//     'https://www.googleapis.com/auth/drive'
+//   ]
+// };
+
 const firebaseConfig = {
-  apiKey: "AIzaSyBTK-MYxSDDxpabGO5dkr8gsNNp6TBb498",
-  authDomain: "bluescope-dcs.firebaseapp.com",
-  projectId: "bluescope-dcs",
-  storageBucket: "bluescope-dcs.appspot.com",
-  messagingSenderId: "941660173387",
-  appId: "1:941660173387:web:b05a7fc690d05f889909ce",
+  apiKey: "AIzaSyDrwmh-eeJuYcs81pIHnDtZkQAkzaXqGzo",
+  authDomain: "delivery-capture-system.firebaseapp.com",
+  projectId: "delivery-capture-system",
+  storageBucket: "delivery-capture-system.appspot.com",
+  messagingSenderId: "591043080660",
+  appId: "1:591043080660:web:5856b044aef2ec53fa6641",
+  measurementId: "G-6GZ4W2YK32",
   scope: [
     'https://www.googleapis.com/auth/script.projects',
     'https://www.googleapis.com/auth/drive'

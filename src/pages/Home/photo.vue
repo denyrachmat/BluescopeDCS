@@ -2,38 +2,61 @@
   <div>
     <template v-if="!userData.providerId">
       <b style="font-size: 24px">ID: {{ form.no_pol.no_pol }}</b>
-      <q-select
-        filled
-        v-model="selectedId"
-        use-input
-        hide-selected
-        fill-input
-        input-debounce="100"
-        :options="options"
-        @filter="filterFn"
-        hint="Minimum 3 characters to trigger filtering No Pol"
-        style="padding-bottom: 32px"
-        @update:model-value="onSelectNopol"
-      >
-        <template v-slot:no-option>
-          <q-item>
-            <q-item-section class="text-grey"> No results </q-item-section>
-          </q-item>
-        </template>
-        <template v-slot:selected>
-          {{ model.label }}
-        </template>
-      </q-select>
+      <div class="row">
+        <div class="col">
+          <q-select filled v-model="selectedId" use-input hide-selected fill-input input-debounce="100" :options="options"
+            @filter="filterFn" hint="Minimum 3 characters to trigger filtering No Pol" style="padding-bottom: 32px"
+            @update:model-value="onSelectNopol">
+            <template v-slot:no-option>
+              <q-item>
+                <q-item-section class="text-grey"> No results </q-item-section>
+              </q-item>
+            </template>
+            <template v-slot:selected>
+              {{ model.label }}
+            </template>
+          </q-select>
+        </div>
+        <div class="col-1">
+          <q-btn icon="add" dense flat />
+        </div>
+      </div>
 
       <q-separator />
     </template>
     <template v-else>
-      <q-input label="No Pol" v-model="form.no_pol" />
+      <div class="row">
+        <div class="col">
+          <q-input label="No Pol" v-model="form.no_pol" dense />
+        </div>
+        <div class="col-1 text-right">
+          <q-btn icon="add" outline color="green" @click="addMorePhoto()" />
+        </div>
+      </div>
     </template>
 
     <div class="q-py-md">
       <q-list bordered>
-        <q-item clickable v-ripple @click="onClickPhoto(1)">
+        <q-item clickable v-ripple @click="onClickPhoto(idx + 1)" v-for="(photo, idx) in listPhoto" :key="idx">
+          <q-item-section avatar>
+            <q-avatar>
+              <img src="~assets/no_image.png" alt="" v-if="!form.photo[`photo${idx + 1}`]" />
+              <img :src="`data:image/png;base64,${form.photo[`photo${idx + 1}`]}`" v-else />
+            </q-avatar>
+          </q-item-section>
+          <q-item-section>{{ `Photo ${idx + 1}` }}</q-item-section>
+          <q-item-section side>
+            <q-icon :name="!form.photo[`photo${idx + 1}`] ? 'block' : 'check'"
+              :color="!form.photo[`photo${idx + 1}`] ? 'red' : 'primary'" />
+          </q-item-section>
+
+          <q-item-section side>
+            <q-btn flat icon="delete" color="red" @click="listPhoto.splice(idx, 1)">
+              <q-tooltip>Delete Section</q-tooltip>
+            </q-btn>
+          </q-item-section>
+        </q-item>
+        <!-- <q-item clickable v-ripple @click="onClickPhoto(1)">
           <q-item-section avatar>
             <q-avatar>
               <img
@@ -108,58 +131,41 @@
               :color="!form.photo.photo4 ? 'red' : 'primary'"
             />
           </q-item-section>
-        </q-item>
+        </q-item> -->
       </q-list>
     </div>
     <q-separator />
     <q-btn-group spread>
       <q-btn color="orange" label="Clear" @click="onReset()" />
-      <q-btn
-        color="primary"
-        label="Submit"
-        @click="!userData.providerId ? onSubmit() : submitWithGoogle()"
-        :disable="
-          Object.values(form.photo).filter((val) => val !== '').length < 4 ||
-          !form.no_pol
-        "
-      />
+      <q-btn color="primary" label="Submit" @click="
+        !userData.providerId
+          ? userData.authority
+            ? submitWithMicrosoft()
+            : onSubmit()
+          : submitWithGoogle()
+        " :disable="Object.values(form.photo).filter((val) => val !== '').length < 4 ||
+    !form.no_pol
+    " />
     </q-btn-group>
-
     <!-- Start Dialog Photo -->
     <q-dialog v-model="viewPhoto">
       <q-card class="q-dialog-plugin">
-        <q-img
-          src="~assets/no_image.png"
-          v-if="!form.photo[`photo${choosedPhoto}`]"
-        >
+        <q-img src="~assets/no_image.png" v-if="!form.photo[`photo${choosedPhoto}`]">
           <div class="absolute-bottom">
             <div class="text-h6">Photo {{ choosedPhoto }}</div>
           </div>
         </q-img>
-        <q-img
-          :src="`data:image/png;base64,${form.photo[`photo${choosedPhoto}`]}`"
-          v-else
-        >
+        <q-img :src="`data:image/png;base64,${form.photo[`photo${choosedPhoto}`]}`" v-else>
           <div class="absolute-bottom">
             <div class="text-h6">Photo {{ choosedPhoto }}</div>
           </div>
         </q-img>
         <q-card-actions align="around">
-          <q-btn
-            color="red"
-            label="Delete"
-            :disable="!form.no_pol || !form.photo[`photo${choosedPhoto}`]"
-            @click="clearPhoto(`photo${choosedPhoto}`)"
-          />
-          <q-btn
-            color="primary"
-            label="Capture"
-            @click="captureImage(`photo${choosedPhoto}`)"
-            :disable="
-              !userData.providerId &&
-              (!form.no_pol || form.photo[`photo${choosedPhoto}`] !== '')
-            "
-          />
+          <q-btn color="red" label="Delete" :disable="!form.no_pol || !form.photo[`photo${choosedPhoto}`]"
+            @click="clearPhoto(`photo${choosedPhoto}`)" />
+          <q-btn color="primary" label="Capture" @click="captureImage(`photo${choosedPhoto}`)" :disable="!userData.providerId &&
+            (!form.no_pol || form.photo[`photo${choosedPhoto}`] !== '')
+            " />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -211,6 +217,8 @@ export default {
       gDetail: null,
       folderGDriveID: "",
       folderIDDate: "",
+      listPhoto: [],
+      refresher: 0
     };
   },
   async created() {
@@ -233,6 +241,15 @@ export default {
         }
       });
 
+      this.initCheck();
+    }
+
+    for (let index = 0; index < 20; index++) {
+      this.addMorePhoto()
+    }
+  },
+  methods: {
+    async initCheck() {
       const checkFolderID = await this.getFolderID("Bluescope DCS");
       if (
         checkFolderID.data &&
@@ -241,17 +258,21 @@ export default {
       ) {
         this.folderGDriveID = checkFolderID.data.files[0].id;
         this.checkDatedFolder();
+
+        return true;
       } else {
         const createFolder = await this.createFolderGDrive("Bluescope DCS");
         if (createFolder) {
           this.folderGDriveID = createFolder.id;
 
           this.checkDatedFolder();
+
+          return true;
+        } else {
+          return false;
         }
       }
-    }
-  },
-  methods: {
+    },
     async checkDatedFolder() {
       const today = new Date();
       const yearNow = today.getFullYear();
@@ -269,7 +290,7 @@ export default {
         checkFolderID.data.files &&
         checkFolderID.data.files.length > 0
       ) {
-        console.log("ada");
+        // console.log("ada");
         this.folderIDDate = checkFolderID.data.files[0].id;
       } else {
         const createFolderDet = await this.createFolderGDrive(
@@ -280,7 +301,7 @@ export default {
           this.folderIDDate = createFolderDet.id;
         }
 
-        console.log("gak ada");
+        // console.log("gak ada");
       }
     },
     async onSelectNopol(val) {
@@ -490,12 +511,11 @@ export default {
 
       const auth = getAuth(app);
 
-      signInWithPopup(auth, provider)
-        .then((result) => {
-          console.log("result", result);
-          this.$q.notify({ message: "Sign In Success." });
-        })
-        .catch((error) => console.log("error", error));
+      signInWithPopup(auth, provider).then((result) => {
+        // console.log("result", result);
+        this.$q.notify({ message: "Sign In Success." });
+      });
+      // .catch((error) => console.log("error", error));
     },
     convertBase64ToBlob(base64Image) {
       // Split into two parts
@@ -519,35 +539,59 @@ export default {
       return new Blob([uInt8Array], { type: imageType });
     },
     async submitWithGoogle() {
-      const photoListKey = Object.keys(this.form.photo);
+      Dialog.create({
+        title: "Alert",
+        message: "Are you sure want to submit all this photo to GDrive ?",
+        cancel: true,
+        persistent: true,
+      })
+        .onOk(async () => {
+          // console.log('OK')
+          const photoListKey = Object.keys(this.form.photo);
 
-      Loading.show({
-        spinner: QSpinnerFacebook,
-        spinnerSize: 140,
-        backgroundColor: "cyan",
-        message: "Some important process is in progress. Hang on...",
-        messageColor: "black",
-      });
-      const results = await Promise.all(
-        photoListKey.map(async (item) => {
-          // const data = await this.uploadToBucket(item, this.form.photo[item]);
-          const data = await this.uploadFiles(this.form.photo[item], item);
-          return [this.form.photo[item], item];
+          Loading.show({
+            spinner: QSpinnerFacebook,
+            spinnerSize: 140,
+            backgroundColor: "cyan",
+            message: "Some important process is in progress. Hang on...",
+            messageColor: "black",
+          });
+          const results = await Promise.all(
+            photoListKey.map(async (item) => {
+              // const data = await this.uploadToBucket(item, this.form.photo[item]);
+              const data = await this.uploadFiles(this.form.photo[item], item);
+              if (data) {
+                return [this.form.photo[item], item];
+              }
+            })
+          );
+
+          if (results && results.filter((val) => val).length > 0) {
+            console.log(results);
+            Loading.hide();
+
+            Notify.create({
+              color: "positive",
+              message: "Photo uploaded ! please check to your google drive...",
+            });
+
+            this.initState();
+          } else {
+            Notify.create({
+              color: "negative",
+              message: "Failed Upload, programs will try to upload again..",
+            });
+
+            const foldernya = await this.initCheck();
+            if (foldernya) {
+              this.submitWithGoogle();
+            }
+            // Loading.hide();
+          }
         })
-      );
-
-      if (results && results.length > 0) {
-        Loading.hide();
-
-        Notify.create({
-          color: "positive",
-          message: "Photo uploaded ! please check to your google drive...",
+        .onCancel(() => {
+          // console.log('Cancel')
         });
-
-        this.initState();
-      } else {
-        Loading.hide();
-      }
     },
     processfile(imageURL) {
       const image = new Image();
@@ -568,7 +612,7 @@ export default {
       image.onload = onload;
       image.src = imageURL;
 
-      console.log(image);
+      // console.log(image);
 
       return image;
     },
@@ -581,7 +625,7 @@ export default {
 
       const hasil = uploadBytes(storageRef, photo1)
         .then(async (snapshot) => {
-          console.log("Uploaded a blob or file!");
+          // console.log("Uploaded a blob or file!");
 
           const data = await getDownloadURL(storageRef).then((url) => url);
 
@@ -614,7 +658,7 @@ export default {
         fileNm + "_" + this.getNowDate() + ".jpg"
       );
 
-      console.log(this.folderIDDate);
+      // console.log(this.folderIDDate);
       const postEmail = await axios
         .post(
           "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
@@ -631,16 +675,23 @@ export default {
           }
         )
         .then((val) => val)
-        .catch((e) => {
-          console.log(e.response);
+        .catch(async (e) => {
+          // console.log(e.response);
           if (e.response.status === 401) {
             this.$store.commit("AuthStore/AuthStoreMutation", []);
             this.$router.push("/");
+          } else if (e.response.status === 404) {
+            // const foldernya = await this.initCheck();
+            // if (foldernya) {
+            //   this.uploadFiles(file, fileNm);
+            // }
           }
+
+          return false;
         });
 
       if (postEmail) {
-        console.log(postEmail);
+        // console.log(postEmail);
         return true;
       } else {
         return false;
@@ -665,7 +716,7 @@ export default {
         )
         .then((val) => val)
         .catch((e) => {
-          console.log(e.response);
+          // console.log(e.response);
           if (e.response.status === 401) {
             this.$store.commit("AuthStore/AuthStoreMutation", []);
             this.$router.push("/");
@@ -694,7 +745,7 @@ export default {
         )
         .then((val) => val)
         .catch((e) => {
-          console.log(e.response);
+          // console.log(e.response);
           if (e.response.status === 401) {
             this.$store.commit("AuthStore/AuthStoreMutation", []);
             this.$router.push("/");
@@ -719,10 +770,104 @@ export default {
       if (dd < 10) dd = "0" + dd;
       if (mm < 10) mm = "0" + mm;
 
-      const todayt = dd + "_" + mm + "_" + yyyy + "_" + hh + mms + ss;
+      const todayt = dd + "_" + mm + "_" + yyyy;
 
       return todayt;
     },
+    async submitWithMicrosoft() {
+      Dialog.create({
+        title: "Alert",
+        message: "Are you sure want to submit all this photo to OneDrive ?",
+        cancel: true,
+        persistent: true,
+      }).onOk(async () => {
+        const photoListKey = Object.keys(this.form.photo);
+
+        Loading.show({
+          spinner: QSpinnerFacebook,
+          spinnerSize: 140,
+          backgroundColor: "cyan",
+          message: "Some important process is in progress. Hang on...",
+          messageColor: "black",
+        });
+        const results = await Promise.all(
+          photoListKey.map(async (item) => {
+            const data = await this.uploadOneDrive(item, this.form.photo[item]);
+            if (data) {
+              return [this.form.photo[item], item];
+            }
+          })
+        );
+
+        if (results && results.filter((val) => val).length > 0) {
+          console.log(results);
+          Loading.hide();
+
+          Notify.create({
+            color: "positive",
+            message: "Photo uploaded ! please check to your onedrive...",
+          });
+
+          this.initState();
+        } else {
+          Loading.hide();
+          Notify.create({
+            color: "negative",
+            message: "Failed Upload, try to submit it again...",
+          });
+        }
+      });
+    },
+    async uploadOneDrive(fileName, filenya) {
+      const photo1 = this.convertBase64ToBlob(
+        "data:image/(png|jpg|jpeg);base64," + filenya
+      );
+
+      const datanya = await axios
+        .put(
+          process.env.GRAPH_API +
+          `me/drive/items/root:/DCS Bluescope/${this.getNowDate()}/${this.form.no_pol + "_" + fileName + "_" + this.getNowDate()
+          }.png:/content`,
+          photo1,
+          {
+            headers: {
+              accept: "application/json",
+              // "Accept-Language": "en-US,en;q=0.8",
+              // "Content-Type": `application/json; boundary=${formData._boundary}`,
+              "Mime-Type": "image/png",
+              Authorization: "Bearer " + this.userData.accessToken,
+            },
+          }
+        )
+        .catch((e) => {
+          if (e.response.status == 401) {
+            Notify.create({
+              color: "negative",
+              message: "You need to login to access this function!",
+            });
+            this.$store.commit("AuthStore/AuthStoreMutation", []);
+            this.$router.push("/");
+          }
+        });
+
+      if (datanya) {
+        return true;
+      } else {
+        return false;
+      }
+    },
+    addMorePhoto() {
+      if (this.listPhoto.length + 1 > 20) {
+
+        Notify.create({
+          color: "negative",
+          message: 'Maximum only 20 Photos !!',
+        });
+      } else {
+        this.listPhoto.push({ [`photo${this.listPhoto ? this.listPhoto.length + 1 : 1}`]: '' })
+      }
+
+    }
   },
   watch: {
     form: {
